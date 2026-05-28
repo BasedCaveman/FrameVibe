@@ -44,7 +44,7 @@ Set the Vercel project root to `frontend/`. Next.js is the better fit here becau
 Optional environment variables:
 
 ```bash
-NEXT_PUBLIC_MEGAETH_CHAIN_ID=6342
+NEXT_PUBLIC_MEGAETH_CHAIN_ID=6343
 NEXT_PUBLIC_MEGAETH_RPC_URL=https://carrot.megaeth.com/rpc
 NEXT_PUBLIC_MEGAETH_EXPLORER_URL=https://www.megaexplorer.xyz
 ```

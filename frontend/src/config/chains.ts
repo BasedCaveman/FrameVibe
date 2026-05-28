@@ -1,7 +1,7 @@
 import type { Chain } from "viem";
 
 export const megaEthTestnet = {
-  id: Number(process.env.NEXT_PUBLIC_MEGAETH_CHAIN_ID ?? 6342),
+  id: Number(process.env.NEXT_PUBLIC_MEGAETH_CHAIN_ID ?? 6343),
   name: "MegaETH Testnet",
   nativeCurrency: {
     decimals: 18,
