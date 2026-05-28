@@ -23,8 +23,7 @@ export const frameVibeFactoryAbi = [
       { name: "owner", type: "address", indexed: true },
       { name: "account", type: "address", indexed: true },
       { name: "verifier", type: "address", indexed: false },
-      { name: "sponsorManager", type: "address", indexed: false },
-      { name: "name", type: "string", indexed: false }
+      { name: "sponsorManager", type: "address", indexed: false }
     ]
   }
 ] as const;

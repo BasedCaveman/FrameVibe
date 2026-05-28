@@ -22,40 +22,35 @@ contract FrameVibeFactory is ReentrancyGuardLite {
 
     address[] public allAccounts;
 
-    event ProjectCreated(bytes32 indexed projectId, address indexed owner, address indexed account, address verifier, address sponsorManager, string name);
+    event ProjectCreated(bytes32 indexed projectId, address indexed owner, address indexed account, address verifier, address sponsorManager);
     event ProjectMetadataUpdated(bytes32 indexed projectId, string metadataURI);
 
-    function createProject(bytes32 projectId, string calldata name, string calldata metadataURI, address owner)
+    function createProject(bytes32 projectId, string calldata name, string calldata metadataURI, address projectOwner)
         external
         nonReentrant
         returns (address account, address verifier, address sponsorManager)
     {
         require(projectId != bytes32(0), "BAD_PROJECT_ID");
         require(projects[projectId].account == address(0), "PROJECT_EXISTS");
-        require(owner != address(0), "BAD_OWNER");
+        require(projectOwner != address(0), "BAD_OWNER");
 
-        bytes32 verifierSalt = keccak256(abi.encode(projectId, owner, "VERIFIER"));
-        bytes32 sponsorSalt = keccak256(abi.encode(projectId, owner, "SPONSOR"));
-        bytes32 accountSalt = keccak256(abi.encode(projectId, owner, "ACCOUNT"));
+        verifier = address(new FrameVerifier{salt: keccak256(abi.encode(projectId, projectOwner, "VERIFIER"))}());
+        sponsorManager = address(new FrameSponsorManager{salt: keccak256(abi.encode(projectId, projectOwner, "SPONSOR"))}(projectOwner));
+        account = address(new FrameVibeAccount{salt: keccak256(abi.encode(projectId, projectOwner, "ACCOUNT"))}(projectOwner, verifier, sponsorManager));
 
-        verifier = address(new FrameVerifier{salt: verifierSalt}());
-        sponsorManager = address(new FrameSponsorManager{salt: sponsorSalt}(owner));
-        account = address(new FrameVibeAccount{salt: accountSalt}(owner, verifier, sponsorManager));
-
-        projects[projectId] = Project({
-            owner: owner,
-            account: account,
-            verifier: verifier,
-            sponsorManager: sponsorManager,
-            name: name,
-            metadataURI: metadataURI,
-            active: true
-        });
+        Project storage project = projects[projectId];
+        project.owner = projectOwner;
+        project.account = account;
+        project.verifier = verifier;
+        project.sponsorManager = sponsorManager;
+        project.name = name;
+        project.metadataURI = metadataURI;
+        project.active = true;
 
         projectOfAccount[account] = projectId;
         allAccounts.push(account);
 
-        emit ProjectCreated(projectId, owner, account, verifier, sponsorManager, name);
+        emit ProjectCreated(projectId, projectOwner, account, verifier, sponsorManager);
     }
 
     function predictProjectAddresses(bytes32 projectId, address owner)
