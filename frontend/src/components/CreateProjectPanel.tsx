@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { createWalletClient, custom, getAddress, keccak256, toBytes, type Address, type Hash } from "viem";
+import { createWalletClient, custom, getAddress, keccak256, numberToHex, toBytes, type Address, type Chain, type Hash } from "viem";
 import { baseSepolia, megaEthTestnet } from "../config/chains";
 import { getFactoryAddress } from "../config/contracts";
 import { frameVibeFactoryAbi } from "../lib/frameVibeFactoryAbi";
@@ -17,6 +17,33 @@ type DeployState = {
 };
 
 const chains = [megaEthTestnet, baseSepolia];
+
+async function ensureWalletChain(chain: Chain) {
+  if (!window.ethereum) return;
+
+  try {
+    await window.ethereum.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: numberToHex(chain.id) }]
+    });
+  } catch (error) {
+    const code = typeof error === "object" && error && "code" in error ? Number(error.code) : 0;
+    if (code !== 4902) throw error;
+
+    await window.ethereum.request({
+      method: "wallet_addEthereumChain",
+      params: [
+        {
+          chainId: numberToHex(chain.id),
+          chainName: chain.name,
+          nativeCurrency: chain.nativeCurrency,
+          rpcUrls: chain.rpcUrls.default.http,
+          blockExplorerUrls: chain.blockExplorers?.default ? [chain.blockExplorers.default.url] : undefined
+        }
+      ]
+    });
+  }
+}
 
 export function CreateProjectPanel({ chainId }: Props) {
   const selectedChain = chains.find((chain) => chain.id === chainId) ?? megaEthTestnet;
@@ -41,6 +68,9 @@ export function CreateProjectPanel({ chainId }: Props) {
         setState({ status: "error", message: "Factory address is not configured for this chain yet." });
         return;
       }
+
+      setState({ status: "wallet", message: `Switching wallet to ${selectedChain.name}...` });
+      await ensureWalletChain(selectedChain);
 
       setState({ status: "wallet", message: "Requesting wallet access..." });
       const walletClient = createWalletClient({
