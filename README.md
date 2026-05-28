@@ -62,6 +62,8 @@ Optional environment variables:
 NEXT_PUBLIC_MEGAETH_CHAIN_ID=6343
 NEXT_PUBLIC_MEGAETH_RPC_URL=https://carrot.megaeth.com/rpc
 NEXT_PUBLIC_MEGAETH_EXPLORER_URL=https://www.megaexplorer.xyz
+NEXT_PUBLIC_MEGAETH_FACTORY_ADDRESS=
+NEXT_PUBLIC_BASE_SEPOLIA_FACTORY_ADDRESS=
 ```
 
 ## Security baseline
@@ -78,10 +80,9 @@ This primitive includes:
 
 ## Next development steps
 
-- Wire the dApp to read deployed factory/account addresses from environment variables.
-- Add a project creation form that calls `FrameVibeFactory.createProject`.
+- Deploy `FrameVibeFactory` on Base Sepolia and MegaETH testnet, then set the factory address env vars in Vercel.
 - Add a frame simulator that serializes `nonceKey`, `nonceSeq`, `recentRoot`, and sponsor rules.
-- Deploy the contracts on Base Sepolia and MegaETH testnet once the UI can consume the returned addresses.
+- Read emitted `ProjectCreated` logs and persist account, verifier, and sponsor manager addresses in the UI.
 - Add tests for signature replay, keyed nonce isolation, sponsorship caps, and batch atomicity.
 
 Before production, add tests for your exact templates and run a contract audit. FrameVibe is a primitive, not a final audited protocol.

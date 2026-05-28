@@ -1,4 +1,4 @@
-import { base, megaEthTestnet } from "../config/chains";
+import { baseSepolia, megaEthTestnet } from "../config/chains";
 
 type Props = {
   selected: number;
@@ -6,7 +6,7 @@ type Props = {
 };
 
 export function ChainSelector({ selected, onSelect }: Props) {
-  const chains = [megaEthTestnet, base];
+  const chains = [megaEthTestnet, baseSepolia];
 
   return (
     <div className="segmented" aria-label="Chain selector">

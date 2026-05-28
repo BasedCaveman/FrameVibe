@@ -224,6 +224,101 @@ h2 {
   font-size: 14px;
 }
 
+.create-panel {
+  background: #fffdf8;
+  border: 1px solid #ddd3c3;
+  border-radius: 8px;
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.panel-head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.panel-head h3 {
+  font-size: 20px;
+  margin-bottom: 0;
+}
+
+.pill {
+  background: #e8e2d6;
+  border-radius: 999px;
+  color: #5b665f;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 7px 10px;
+}
+
+.pill.ready {
+  background: rgba(33, 148, 109, 0.13);
+  color: #17684d;
+}
+
+.create-panel label {
+  color: #4f5f55;
+  display: grid;
+  font-size: 13px;
+  font-weight: 800;
+  gap: 7px;
+}
+
+.create-panel input {
+  background: #f6f3ec;
+  border: 1px solid #d7cebf;
+  border-radius: 8px;
+  color: #17201a;
+  font: inherit;
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+.project-id,
+.tx-hash {
+  background: #f6f3ec;
+  border-radius: 8px;
+  display: grid;
+  gap: 6px;
+  overflow: hidden;
+  padding: 12px;
+}
+
+.project-id span {
+  color: #5b665f;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.project-id code,
+.tx-hash {
+  color: #17201a;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.primary-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.deploy-message {
+  color: #4f5f55;
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 0;
+}
+
+.deploy-message.error {
+  color: #b43a24;
+}
+
+.deploy-message.success {
+  color: #17684d;
+}
+
 @media (max-width: 860px) {
   .app-shell {
     padding: 18px;
