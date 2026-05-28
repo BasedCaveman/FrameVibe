@@ -1,0 +1,12 @@
+{
+  "name": "framevibe",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FrameVibe primitive for visual EIP-8141-style frame transaction flows on MegaETH and Base.",
+  "scripts": {
+    "build": "npm --prefix frontend run build"
+  },
+  "devDependencies": {
+    "hardhat": "^2.22.19"
+  }
+}
