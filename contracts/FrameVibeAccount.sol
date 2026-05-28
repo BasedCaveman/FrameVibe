@@ -15,7 +15,7 @@ contract FrameVibeAccount is IFrameVibeAccount, ReentrancyGuardLite {
     IFrameVerifier public immutable verifier;
     address public sponsorManager;
 
-    mapping(FrameTypes.FrameKind kind => uint256 currentNonce) private _nonces;
+    mapping(bytes32 nonceKey => uint256 nonceSeq) private _nonces;
     mapping(address validator => bool enabled) public validators;
 
     modifier onlyOwner() {
@@ -39,8 +39,8 @@ contract FrameVibeAccount is IFrameVibeAccount, ReentrancyGuardLite {
 
     receive() external payable {}
 
-    function nonce(FrameTypes.FrameKind kind) external view override returns (uint256) {
-        return _nonces[kind];
+    function nonce(bytes32 nonceKey) external view override returns (uint256) {
+        return _nonces[nonceKey];
     }
 
     function setValidator(address validator, bool enabled) external override onlyOwner {
@@ -62,11 +62,12 @@ contract FrameVibeAccount is IFrameVibeAccount, ReentrancyGuardLite {
         returns (bytes[] memory results)
     {
         FrameLib.assertLive(frame.deadline);
-        require(frame.nonce == _nonces[frame.kind], "BAD_NONCE");
+        bytes32 nonceKey = frame.nonceKey == bytes32(0) ? _defaultNonceKey(frame.kind) : frame.nonceKey;
+        require(frame.nonceSeq == _nonces[nonceKey], "BAD_NONCE");
 
         bytes32 digest = FrameLib.hashFrame(address(this), frame);
         _verifyFrame(frame, digest, signature);
-        _nonces[frame.kind] += 1;
+        _nonces[nonceKey] += 1;
 
         if (frame.kind == FrameTypes.FrameKind.VERIFY) {
             require(frame.calls.length == 0, "VERIFY_HAS_CALLS");
@@ -113,6 +114,10 @@ contract FrameVibeAccount is IFrameVibeAccount, ReentrancyGuardLite {
         for (uint256 i = 0; i < calls.length; i++) {
             total += calls[i].value;
         }
+    }
+
+    function _defaultNonceKey(FrameTypes.FrameKind kind) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked("FRAMEVIBE_DEFAULT_NONCE", uint8(kind)));
     }
 
     function _revertReason(bytes memory result) internal pure returns (string memory) {

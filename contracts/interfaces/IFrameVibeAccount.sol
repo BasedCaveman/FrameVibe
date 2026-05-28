@@ -9,7 +9,7 @@ interface IFrameVibeAccount {
     event SponsorManagerSet(address indexed sponsorManager);
 
     function owner() external view returns (address);
-    function nonce(FrameTypes.FrameKind kind) external view returns (uint256);
+    function nonce(bytes32 nonceKey) external view returns (uint256);
     function executeFrame(FrameTypes.Frame calldata frame, bytes calldata signature) external payable returns (bytes[] memory results);
     function setValidator(address validator, bool enabled) external;
     function setSponsorManager(address sponsorManager) external;

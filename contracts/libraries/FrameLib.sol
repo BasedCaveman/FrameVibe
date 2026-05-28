@@ -6,7 +6,7 @@ import "./FrameTypes.sol";
 library FrameLib {
     bytes32 internal constant CALL_TYPEHASH = keccak256("Call(address target,uint256 value,bytes32 dataHash)");
     bytes32 internal constant FRAME_TYPEHASH =
-        keccak256("Frame(uint8 kind,address account,address actor,address sponsor,bytes32 callsHash,uint256 nonce,uint256 deadline,uint256 gasLimit,bytes32 metadataHash,uint256 chainId)");
+        keccak256("Frame(uint8 kind,address account,address actor,address sponsor,bytes32 callsHash,bytes32 nonceKey,uint256 nonceSeq,uint256 deadline,uint256 gasLimit,bytes32 recentRoot,bytes32 recentRootSource,bytes32 metadataHash,uint256 chainId)");
 
     function hashCall(FrameTypes.Call calldata call_) internal pure returns (bytes32) {
         return keccak256(abi.encode(CALL_TYPEHASH, call_.target, call_.value, keccak256(call_.data)));
@@ -29,9 +29,12 @@ library FrameLib {
                 frame.actor,
                 frame.sponsor,
                 hashCalls(frame.calls),
-                frame.nonce,
+                frame.nonceKey,
+                frame.nonceSeq,
                 frame.deadline,
                 frame.gasLimit,
+                frame.recentRoot,
+                frame.recentRootSource,
                 frame.metadataHash,
                 block.chainid
             )

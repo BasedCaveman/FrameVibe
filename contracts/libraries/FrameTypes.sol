@@ -19,10 +19,20 @@ library FrameTypes {
         address actor;
         address sponsor;
         Call[] calls;
-        uint256 nonce;
+        bytes32 nonceKey;
+        uint256 nonceSeq;
         uint256 deadline;
         uint256 gasLimit;
+        bytes32 recentRoot;
+        bytes32 recentRootSource;
         bytes32 metadataHash;
+    }
+
+    struct RecentRoot {
+        bytes32 root;
+        bytes32 source;
+        uint64 validAfter;
+        uint64 validUntil;
     }
 
     struct SponsorRule {

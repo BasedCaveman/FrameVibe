@@ -23,3 +23,8 @@ The transaction returns:
 - `sponsorManager`: the sponsorship policy contract.
 
 For a sponsored flow, call `setSponsorRule` on the sponsor manager, then execute an `APPROVE` frame on the account.
+
+Optional demo support:
+
+- Deploy `FrameRecentRoots` with your wallet as `initialOwner` if you want to simulate EIP-8272-style recent root validation in local/testnet flows.
+- Use `nonceKey` and `nonceSeq` on each frame for EIP-8250-style keyed nonce lanes. A zero `nonceKey` falls back to a default lane per frame kind.
