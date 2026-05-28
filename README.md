@@ -36,11 +36,11 @@ In product terms, this means FrameVibe should evolve from a basic no-code transa
 ## Deploy with Remix
 
 1. Open [remix.ethereum.org](https://remix.ethereum.org).
-2. Upload the `contracts/` folder.
-3. Compile `contracts/FrameVibeFactory.sol` with Solidity `0.8.20` or newer.
-4. Deploy `FrameVibeFactory`.
+2. Upload `contracts/remix/FrameVibeRemix.sol`.
+3. Compile `FrameVibeRemix.sol` with Solidity `0.8.20` or newer.
+4. Select and deploy `FrameVibeFactory`.
 5. Call `createProject(projectId, name, metadataURI, owner)`.
-6. Optional: deploy `FrameRecentRoots` if you want to test recent-root-gated flows.
+6. Optional: select and deploy `FrameRecentRoots` from the same file if you want to test recent-root-gated flows.
 
 See `scripts/deploy-remix-order.md` for sample parameters.
 

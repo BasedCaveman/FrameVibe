@@ -2,9 +2,9 @@
 
 Use Solidity `0.8.20` or newer.
 
-1. Upload the `contracts/` folder to Remix.
-2. Compile `FrameVibeFactory.sol`.
-3. Deploy `FrameVibeFactory`.
+1. Upload `contracts/remix/FrameVibeRemix.sol` to Remix.
+2. Compile `FrameVibeRemix.sol`.
+3. Select and deploy `FrameVibeFactory` from the contract dropdown.
 4. Call `createProject(projectId, name, metadataURI, owner)`.
 
 Example values:
@@ -26,5 +26,5 @@ For a sponsored flow, call `setSponsorRule` on the sponsor manager, then execute
 
 Optional demo support:
 
-- Deploy `FrameRecentRoots` with your wallet as `initialOwner` if you want to simulate EIP-8272-style recent root validation in local/testnet flows.
+- Select and deploy `FrameRecentRoots` from the same single-file Remix build with your wallet as `initialOwner` if you want to simulate EIP-8272-style recent root validation in local/testnet flows.
 - Use `nonceKey` and `nonceSeq` on each frame for EIP-8250-style keyed nonce lanes. A zero `nonceKey` falls back to a default lane per frame kind.
