@@ -224,7 +224,8 @@ h2 {
   font-size: 14px;
 }
 
-.create-panel {
+.create-panel,
+.simulator-panel {
   background: #fffdf8;
   border: 1px solid #ddd3c3;
   border-radius: 8px;
@@ -258,7 +259,8 @@ h2 {
   color: #17684d;
 }
 
-.create-panel label {
+.create-panel label,
+.simulator-panel label {
   color: #4f5f55;
   display: grid;
   font-size: 13px;
@@ -266,7 +268,9 @@ h2 {
   gap: 7px;
 }
 
-.create-panel input {
+.create-panel input,
+.simulator-panel input,
+.simulator-panel select {
   background: #f6f3ec;
   border: 1px solid #d7cebf;
   border-radius: 8px;
@@ -274,6 +278,43 @@ h2 {
   font: inherit;
   min-height: 42px;
   padding: 0 12px;
+}
+
+.simulator-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.nonce-row {
+  align-items: end;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.nonce-row button {
+  background: #e8e2d6;
+  border: 1px solid #d7cebf;
+  border-radius: 8px;
+  color: #17201a;
+  cursor: pointer;
+  font-weight: 800;
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+.frame-preview {
+  background: #17201a;
+  border-radius: 8px;
+  color: #fffdf8;
+  font-size: 12px;
+  line-height: 1.55;
+  margin: 0;
+  max-height: 420px;
+  overflow: auto;
+  padding: 16px;
+  white-space: pre-wrap;
 }
 
 .project-id,
@@ -356,7 +397,9 @@ h2 {
   }
 
   .workspace,
-  .status-grid {
+  .status-grid,
+  .simulator-grid,
+  .nonce-row {
     grid-template-columns: 1fr;
   }
 

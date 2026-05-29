@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { ChainSelector } from "../components/ChainSelector";
 import { CreateProjectPanel } from "../components/CreateProjectPanel";
 import { FrameCanvas } from "../components/FrameCanvas";
+import { FrameSimulator } from "../components/FrameSimulator";
 import { TemplateGallery } from "../components/TemplateGallery";
 import { megaEthTestnet } from "../config/chains";
 import { templates } from "../lib/frameTemplates";
@@ -40,6 +41,7 @@ export default function Home() {
 
           <FrameCanvas template={selectedTemplate} />
           <CreateProjectPanel chainId={selectedChain} />
+          <FrameSimulator chainId={selectedChain} />
 
           <section className="status-grid" aria-label="Deployment status">
             <div>
