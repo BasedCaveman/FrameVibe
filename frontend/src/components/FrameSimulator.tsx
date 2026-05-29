@@ -12,6 +12,11 @@ type Props = {
 };
 
 type FrameKind = "VERIFY" | "EXECUTION" | "APPROVE";
+type ManualCall = {
+  target: string;
+  value: string;
+  data: Hex;
+};
 
 const zeroBytes32 = `0x${"0".repeat(64)}` as Hex;
 const frameKindMap: Record<FrameKind, number> = {
@@ -38,6 +43,10 @@ export function FrameSimulator({ chainId }: Props) {
   const [recentRoot, setRecentRoot] = useState<Hex>(zeroBytes32);
   const [recentRootSource, setRecentRootSource] = useState<Hex>(zeroBytes32);
   const [metadataText, setMetadataText] = useState("framevibe:simulator:v1");
+  const [callTarget, setCallTarget] = useState("");
+  const [callValue, setCallValue] = useState("0");
+  const [callData, setCallData] = useState<Hex>("0x");
+  const [calls, setCalls] = useState<ManualCall[]>([]);
   const [nonceStatus, setNonceStatus] = useState("Ready.");
   const [executeStatus, setExecuteStatus] = useState("VERIFY execution ready.");
   const [executeTx, setExecuteTx] = useState<Hash>();
@@ -51,7 +60,7 @@ export function FrameSimulator({ chainId }: Props) {
       kindIndex: frameKindMap[kind],
       actor: actor || "connected wallet / account owner",
       sponsor: sponsor || "0x0000000000000000000000000000000000000000",
-      calls: [],
+      calls,
       nonceKey,
       nonceSeq,
       deadline,
@@ -60,7 +69,7 @@ export function FrameSimulator({ chainId }: Props) {
       recentRootSource,
       metadataHash
     };
-  }, [actor, contracts?.genesisAccount, deadline, gasLimit, kind, metadataHash, nonceKey, nonceSeq, recentRoot, recentRootSource, sponsor]);
+  }, [actor, calls, contracts?.genesisAccount, deadline, gasLimit, kind, metadataHash, nonceKey, nonceSeq, recentRoot, recentRootSource, sponsor]);
 
   useEffect(() => {
     setNonceKey(defaultNonceKey(kind));
@@ -92,9 +101,14 @@ export function FrameSimulator({ chainId }: Props) {
     }
   }
 
-  async function executeVerifyFrame() {
-    if (kind !== "VERIFY") {
-      setExecuteStatus("Only VERIFY execution is enabled in this increment.");
+  async function executeCurrentFrame(expectedKind: FrameKind) {
+    if (kind !== expectedKind) {
+      setExecuteStatus(`Switch frame kind to ${expectedKind} first.`);
+      return;
+    }
+
+    if (expectedKind === "EXECUTION" && calls.length === 0) {
+      setExecuteStatus("Add at least one call before executing.");
       return;
     }
 
@@ -126,7 +140,11 @@ export function FrameSimulator({ chainId }: Props) {
         kind: frameKindMap[kind],
         actor: actor ? getAddress(actor) : account,
         sponsor: sponsor ? getAddress(sponsor) : zeroAddress,
-        calls: [],
+        calls: calls.map((call) => ({
+          target: getAddress(call.target),
+          value: BigInt(call.value || "0"),
+          data: call.data || "0x"
+        })),
         nonceKey,
         nonceSeq: BigInt(nonceSeq || "0"),
         deadline: BigInt(deadline || "0"),
@@ -136,7 +154,7 @@ export function FrameSimulator({ chainId }: Props) {
         metadataHash
       };
 
-      setExecuteStatus("Submitting VERIFY frame...");
+      setExecuteStatus(`Submitting ${expectedKind} frame...`);
       const txHash = await walletClient.writeContract({
         account,
         address: contracts.genesisAccount,
@@ -146,15 +164,23 @@ export function FrameSimulator({ chainId }: Props) {
       });
       setExecuteTx(txHash);
 
-      setExecuteStatus("VERIFY submitted. Waiting for receipt...");
+      setExecuteStatus(`${expectedKind} submitted. Waiting for receipt...`);
       await publicClient.waitForTransactionReceipt({ hash: txHash });
-      setExecuteStatus("VERIFY frame executed. Refreshing nonce...");
+      setExecuteStatus(`${expectedKind} frame executed. Refreshing nonce...`);
       await refreshNonce();
-      setExecuteStatus("VERIFY frame executed.");
+      setExecuteStatus(`${expectedKind} frame executed.`);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "VERIFY execution failed.";
+      const message = error instanceof Error ? error.message : `${expectedKind} execution failed.`;
       setExecuteStatus(message);
     }
+  }
+
+  async function executeVerifyFrame() {
+    await executeCurrentFrame("VERIFY");
+  }
+
+  async function executeExecutionFrame() {
+    await executeCurrentFrame("EXECUTION");
   }
 
   function useDefaultLane() {
@@ -167,6 +193,40 @@ export function FrameSimulator({ chainId }: Props) {
       return;
     }
     setter(pad(value as Hex, { size: 32 }));
+  }
+
+  function normalizeCalldata(value: string) {
+    if (!value || value === "0x") {
+      setCallData("0x");
+      return;
+    }
+    setCallData((value.startsWith("0x") ? value : `0x${value}`) as Hex);
+  }
+
+  function addCall() {
+    try {
+      const normalizedTarget = getAddress(callTarget);
+      BigInt(callValue || "0");
+      setCalls((currentCalls) => [
+        ...currentCalls,
+        {
+          target: normalizedTarget,
+          value: callValue || "0",
+          data: callData || "0x"
+        }
+      ]);
+      setCallTarget("");
+      setCallValue("0");
+      setCallData("0x");
+      setExecuteStatus("Call added to EXECUTION frame.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Invalid call.";
+      setExecuteStatus(message);
+    }
+  }
+
+  function removeCall(index: number) {
+    setCalls((currentCalls) => currentCalls.filter((_, callIndex) => callIndex !== index));
   }
 
   return (
@@ -241,9 +301,56 @@ export function FrameSimulator({ chainId }: Props) {
         </label>
       </div>
 
+      {kind === "EXECUTION" ? (
+        <section className="calls-builder" aria-label="Execution calls">
+          <div className="panel-head">
+            <div>
+              <p className="eyebrow">Execution calls</p>
+              <h3>Manual Call Builder</h3>
+            </div>
+            <span className="pill">{calls.length} calls</span>
+          </div>
+
+          <div className="simulator-grid">
+            <label>
+              Target
+              <input value={callTarget} onChange={(event) => setCallTarget(event.target.value)} placeholder="0x target contract or wallet" />
+            </label>
+
+            <label>
+              Value wei
+              <input value={callValue} onChange={(event) => setCallValue(event.target.value)} inputMode="numeric" />
+            </label>
+
+            <label>
+              Calldata
+              <input value={callData} onChange={(event) => normalizeCalldata(event.target.value)} placeholder="0x" />
+            </label>
+          </div>
+
+          <button type="button" className="secondary-action" onClick={addCall}>Add call</button>
+
+          {calls.length > 0 ? (
+            <div className="call-list">
+              {calls.map((call, index) => (
+                <div key={`${call.target}-${index}`}>
+                  <span>Call {index + 1}</span>
+                  <code>{call.target}</code>
+                  <small>{call.value} wei / {call.data}</small>
+                  <button type="button" onClick={() => removeCall(index)}>Remove</button>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+
       <p className="deploy-message">{nonceStatus}</p>
       <button type="button" className="primary-action" disabled={kind !== "VERIFY"} onClick={executeVerifyFrame}>
         Execute VERIFY Frame
+      </button>
+      <button type="button" className="primary-action execution-action" disabled={kind !== "EXECUTION" || calls.length === 0} onClick={executeExecutionFrame}>
+        Execute EXECUTION Frame
       </button>
       <p className="deploy-message">{executeStatus}</p>
       {executeTx ? <code className="tx-hash">{executeTx}</code> : null}

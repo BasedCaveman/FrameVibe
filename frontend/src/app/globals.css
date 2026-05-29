@@ -144,6 +144,21 @@ h2 {
   padding: 0 18px;
 }
 
+.secondary-action {
+  background: #e8e2d6;
+  border: 1px solid #d7cebf;
+  border-radius: 8px;
+  color: #17201a;
+  cursor: pointer;
+  font-weight: 800;
+  min-height: 42px;
+  padding: 0 14px;
+}
+
+.execution-action {
+  background: #3266d8;
+}
+
 .canvas {
   display: grid;
   gap: 12px;
@@ -317,6 +332,49 @@ h2 {
   white-space: pre-wrap;
 }
 
+.calls-builder {
+  border: 1px solid #e8e2d6;
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.call-list {
+  display: grid;
+  gap: 8px;
+}
+
+.call-list div {
+  background: #f6f3ec;
+  border-radius: 8px;
+  display: grid;
+  gap: 5px;
+  grid-template-columns: 84px minmax(0, 1fr) minmax(0, 1fr) auto;
+  padding: 10px;
+}
+
+.call-list span {
+  color: #17684d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.call-list code,
+.call-list small {
+  color: #17201a;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.call-list button {
+  background: transparent;
+  border: 0;
+  color: #b43a24;
+  cursor: pointer;
+  font-weight: 800;
+}
+
 .project-id,
 .tx-hash {
   background: #f6f3ec;
@@ -399,7 +457,8 @@ h2 {
   .workspace,
   .status-grid,
   .simulator-grid,
-  .nonce-row {
+  .nonce-row,
+  .call-list div {
     grid-template-columns: 1fr;
   }
 
