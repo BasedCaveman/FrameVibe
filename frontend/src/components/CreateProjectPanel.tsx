@@ -16,6 +16,7 @@ import {
 import { baseSepolia, megaEthTestnet } from "../config/chains";
 import { getFactoryAddress } from "../config/contracts";
 import { frameVibeFactoryAbi } from "../lib/frameVibeFactoryAbi";
+import { appendReceipt } from "../lib/receiptTimeline";
 import { ensureWalletChain } from "../lib/walletChain";
 
 type Props = {
@@ -99,6 +100,13 @@ export function CreateProjectPanel({ chainId }: Props) {
         .find((event) => event?.eventName === "ProjectCreated");
 
       if (projectCreated?.eventName === "ProjectCreated") {
+        appendReceipt({
+          chainId: selectedChain.id,
+          kind: "PROJECT",
+          title: "Project created",
+          txHash,
+          detail: `Account ${projectCreated.args.account}`
+        });
         setState({
           status: "success",
           message: "Project created on-chain.",
@@ -110,6 +118,12 @@ export function CreateProjectPanel({ chainId }: Props) {
         return;
       }
 
+      appendReceipt({
+        chainId: selectedChain.id,
+        kind: "PROJECT",
+        title: "Project transaction confirmed",
+        txHash
+      });
       setState({ status: "success", message: "Project transaction confirmed. Event parsing skipped.", txHash });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Transaction failed.";

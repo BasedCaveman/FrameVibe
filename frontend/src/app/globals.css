@@ -245,7 +245,8 @@ h2 {
 
 .create-panel,
 .simulator-panel,
-.sponsor-panel {
+.sponsor-panel,
+.timeline-panel {
   background: #fffdf8;
   border: 1px solid #ddd3c3;
   border-radius: 8px;
@@ -400,6 +401,42 @@ h2 {
   font-weight: 800;
 }
 
+.timeline-list {
+  display: grid;
+  gap: 10px;
+}
+
+.timeline-item {
+  align-items: start;
+  background: #f6f3ec;
+  border-left: 5px solid #21946d;
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(160px, 0.8fr) minmax(0, 1fr) auto;
+  padding: 12px;
+}
+
+.timeline-item span {
+  color: #17684d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.timeline-item strong {
+  display: block;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.timeline-item small,
+.timeline-item time,
+.timeline-item code {
+  color: #4f5f55;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
 .project-id,
 .tx-hash {
   background: #f6f3ec;
@@ -484,7 +521,8 @@ h2 {
   .simulator-grid,
   .nonce-row,
   .action-row,
-  .call-list div {
+  .call-list div,
+  .timeline-item {
     grid-template-columns: 1fr;
   }
 

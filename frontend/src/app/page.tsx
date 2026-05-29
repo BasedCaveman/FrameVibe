@@ -5,6 +5,7 @@ import { ChainSelector } from "../components/ChainSelector";
 import { CreateProjectPanel } from "../components/CreateProjectPanel";
 import { FrameCanvas } from "../components/FrameCanvas";
 import { FrameSimulator } from "../components/FrameSimulator";
+import { ReceiptTimeline } from "../components/ReceiptTimeline";
 import { SponsorManagerPanel } from "../components/SponsorManagerPanel";
 import { TemplateGallery } from "../components/TemplateGallery";
 import { megaEthTestnet } from "../config/chains";
@@ -52,6 +53,7 @@ export default function Home() {
             }}
           />
           <FrameSimulator chainId={selectedChain} initialSponsor={approveSponsor} initialGasLimit={approveGasLimit} />
+          <ReceiptTimeline chainId={selectedChain} />
 
           <section className="status-grid" aria-label="Deployment status">
             <div>

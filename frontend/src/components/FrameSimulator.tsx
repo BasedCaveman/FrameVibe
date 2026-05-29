@@ -5,6 +5,7 @@ import { createPublicClient, createWalletClient, custom, encodePacked, getAddres
 import { baseSepolia, megaEthTestnet } from "../config/chains";
 import { getChainContracts } from "../config/contracts";
 import { frameVibeAccountAbi } from "../lib/frameVibeAccountAbi";
+import { appendReceipt, type ReceiptKind } from "../lib/receiptTimeline";
 import { ensureWalletChain } from "../lib/walletChain";
 
 type Props = {
@@ -176,6 +177,13 @@ export function FrameSimulator({ chainId, initialSponsor, initialGasLimit }: Pro
 
       setExecuteStatus(`${expectedKind} submitted. Waiting for receipt...`);
       await publicClient.waitForTransactionReceipt({ hash: txHash });
+      appendReceipt({
+        chainId: selectedChain.id,
+        kind: expectedKind as ReceiptKind,
+        title: `${expectedKind} frame executed`,
+        txHash,
+        detail: `Nonce key ${nonceKey}`
+      });
       setExecuteStatus(`${expectedKind} frame executed. Refreshing nonce...`);
       await refreshNonce();
       setExecuteStatus(`${expectedKind} frame executed.`);

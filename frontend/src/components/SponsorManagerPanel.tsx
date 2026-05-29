@@ -5,6 +5,7 @@ import { createPublicClient, createWalletClient, custom, getAddress, http, type 
 import { baseSepolia, megaEthTestnet } from "../config/chains";
 import { getChainContracts } from "../config/contracts";
 import { frameSponsorManagerAbi } from "../lib/frameSponsorManagerAbi";
+import { appendReceipt } from "../lib/receiptTimeline";
 import { ensureWalletChain } from "../lib/walletChain";
 
 type Props = {
@@ -76,6 +77,13 @@ export function SponsorManagerPanel({ chainId, onSponsorChange }: Props) {
       setTxHash(hash);
       setStatus("Sponsor rule submitted. Waiting for receipt...");
       await publicClient.waitForTransactionReceipt({ hash });
+      appendReceipt({
+        chainId: selectedChain.id,
+        kind: "SPONSOR_RULE",
+        title: "Sponsor rule set",
+        txHash: hash,
+        detail: `Sponsor ${sponsorAddress}`
+      });
       setStatus("Sponsor rule configured.");
       onSponsorChange(sponsorAddress, maxGasWei || "0");
       await readRule(sponsorAddress);
