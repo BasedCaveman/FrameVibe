@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createPublicClient, createWalletClient, custom, getAddress, http, type Hash } from "viem";
+import { createPublicClient, createWalletClient, custom, getAddress, http, type Address, type Hash } from "viem";
 import { baseSepolia, megaEthTestnet } from "../config/chains";
 import { getChainContracts } from "../config/contracts";
 import { frameSponsorManagerAbi } from "../lib/frameSponsorManagerAbi";
@@ -26,6 +26,7 @@ export function SponsorManagerPanel({ chainId, onSponsorChange }: Props) {
   const [status, setStatus] = useState("Sponsor rule ready.");
   const [txHash, setTxHash] = useState<Hash>();
   const [rulePreview, setRulePreview] = useState("");
+  const [lastSponsor, setLastSponsor] = useState("");
 
   async function setRule() {
     if (!window.ethereum) {
@@ -52,6 +53,8 @@ export function SponsorManagerPanel({ chainId, onSponsorChange }: Props) {
       });
       const [account] = await walletClient.requestAddresses();
       const sponsorAddress = getAddress(sponsor || account);
+      setSponsor(sponsorAddress);
+      setLastSponsor(sponsorAddress);
 
       setStatus("Submitting sponsor rule...");
       const hash = await walletClient.writeContract({
@@ -89,7 +92,26 @@ export function SponsorManagerPanel({ chainId, onSponsorChange }: Props) {
     }
 
     try {
-      const sponsorAddress = getAddress(sponsorOverride || sponsor);
+      let sponsorAddress = sponsorOverride || sponsor || lastSponsor;
+      if (!sponsorAddress) {
+        if (!window.ethereum) {
+          setStatus("Enter a sponsor address or connect a wallet first.");
+          return;
+        }
+
+        await ensureWalletChain(selectedChain);
+        const walletClient = createWalletClient({
+          chain: selectedChain,
+          transport: custom(window.ethereum)
+        });
+        const [account] = await walletClient.requestAddresses();
+        sponsorAddress = account;
+      }
+
+      const normalizedSponsor = getAddress(sponsorAddress) as Address;
+      setSponsor(normalizedSponsor);
+      setLastSponsor(normalizedSponsor);
+
       const publicClient = createPublicClient({
         chain: selectedChain,
         transport: http(selectedChain.rpcUrls.default.http[0])
@@ -98,7 +120,7 @@ export function SponsorManagerPanel({ chainId, onSponsorChange }: Props) {
         address: contracts.genesisSponsorManager,
         abi: frameSponsorManagerAbi,
         functionName: "sponsorRules",
-        args: [sponsorAddress, contracts.genesisAccount]
+        args: [normalizedSponsor, contracts.genesisAccount]
       });
 
       setRulePreview(JSON.stringify({
