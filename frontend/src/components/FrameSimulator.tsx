@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { createPublicClient, encodePacked, http, keccak256, pad, toBytes, type Address, type Hex } from "viem";
+import { createPublicClient, createWalletClient, custom, encodePacked, getAddress, http, keccak256, pad, toBytes, zeroAddress, type Hex, type Hash } from "viem";
 import { baseSepolia, megaEthTestnet } from "../config/chains";
 import { getChainContracts } from "../config/contracts";
 import { frameVibeAccountAbi } from "../lib/frameVibeAccountAbi";
+import { ensureWalletChain } from "../lib/walletChain";
 
 type Props = {
   chainId: number;
@@ -38,6 +39,8 @@ export function FrameSimulator({ chainId }: Props) {
   const [recentRootSource, setRecentRootSource] = useState<Hex>(zeroBytes32);
   const [metadataText, setMetadataText] = useState("framevibe:simulator:v1");
   const [nonceStatus, setNonceStatus] = useState("Ready.");
+  const [executeStatus, setExecuteStatus] = useState("VERIFY execution ready.");
+  const [executeTx, setExecuteTx] = useState<Hash>();
 
   const metadataHash = useMemo(() => keccak256(toBytes(metadataText || "framevibe")), [metadataText]);
 
@@ -86,6 +89,71 @@ export function FrameSimulator({ chainId }: Props) {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Could not read nonce.";
       setNonceStatus(message);
+    }
+  }
+
+  async function executeVerifyFrame() {
+    if (kind !== "VERIFY") {
+      setExecuteStatus("Only VERIFY execution is enabled in this increment.");
+      return;
+    }
+
+    if (!window.ethereum) {
+      setExecuteStatus("Wallet not found. Install a browser wallet to continue.");
+      return;
+    }
+
+    if (!contracts?.genesisAccount) {
+      setExecuteStatus("No account configured for this chain.");
+      return;
+    }
+
+    try {
+      setExecuteStatus(`Switching wallet to ${selectedChain.name}...`);
+      await ensureWalletChain(selectedChain);
+
+      const walletClient = createWalletClient({
+        chain: selectedChain,
+        transport: custom(window.ethereum)
+      });
+      const publicClient = createPublicClient({
+        chain: selectedChain,
+        transport: http(selectedChain.rpcUrls.default.http[0])
+      });
+      const [account] = await walletClient.requestAddresses();
+
+      const frame = {
+        kind: frameKindMap[kind],
+        actor: actor ? getAddress(actor) : account,
+        sponsor: sponsor ? getAddress(sponsor) : zeroAddress,
+        calls: [],
+        nonceKey,
+        nonceSeq: BigInt(nonceSeq || "0"),
+        deadline: BigInt(deadline || "0"),
+        gasLimit: BigInt(gasLimit || "0"),
+        recentRoot,
+        recentRootSource,
+        metadataHash
+      };
+
+      setExecuteStatus("Submitting VERIFY frame...");
+      const txHash = await walletClient.writeContract({
+        account,
+        address: contracts.genesisAccount,
+        abi: frameVibeAccountAbi,
+        functionName: "executeFrame",
+        args: [frame, "0x"]
+      });
+      setExecuteTx(txHash);
+
+      setExecuteStatus("VERIFY submitted. Waiting for receipt...");
+      await publicClient.waitForTransactionReceipt({ hash: txHash });
+      setExecuteStatus("VERIFY frame executed. Refreshing nonce...");
+      await refreshNonce();
+      setExecuteStatus("VERIFY frame executed.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "VERIFY execution failed.";
+      setExecuteStatus(message);
     }
   }
 
@@ -174,6 +242,11 @@ export function FrameSimulator({ chainId }: Props) {
       </div>
 
       <p className="deploy-message">{nonceStatus}</p>
+      <button type="button" className="primary-action" disabled={kind !== "VERIFY"} onClick={executeVerifyFrame}>
+        Execute VERIFY Frame
+      </button>
+      <p className="deploy-message">{executeStatus}</p>
+      {executeTx ? <code className="tx-hash">{executeTx}</code> : null}
       <pre className="frame-preview">{JSON.stringify(framePreview, null, 2)}</pre>
     </section>
   );
