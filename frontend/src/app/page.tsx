@@ -5,6 +5,7 @@ import { ChainSelector } from "../components/ChainSelector";
 import { CreateProjectPanel } from "../components/CreateProjectPanel";
 import { FrameCanvas } from "../components/FrameCanvas";
 import { FrameSimulator } from "../components/FrameSimulator";
+import { SponsorManagerPanel } from "../components/SponsorManagerPanel";
 import { TemplateGallery } from "../components/TemplateGallery";
 import { megaEthTestnet } from "../config/chains";
 import { templates } from "../lib/frameTemplates";
@@ -12,6 +13,8 @@ import { templates } from "../lib/frameTemplates";
 export default function Home() {
   const [selectedChain, setSelectedChain] = useState<number>(megaEthTestnet.id);
   const [selectedTemplate, setSelectedTemplate] = useState(templates[0]);
+  const [approveSponsor, setApproveSponsor] = useState("");
+  const [approveGasLimit, setApproveGasLimit] = useState("0");
 
   const chainLabel = useMemo(() => {
     return selectedChain === megaEthTestnet.id ? "sub-10ms real-time flows" : "Coinbase ecosystem reach";
@@ -41,7 +44,14 @@ export default function Home() {
 
           <FrameCanvas template={selectedTemplate} />
           <CreateProjectPanel chainId={selectedChain} />
-          <FrameSimulator chainId={selectedChain} />
+          <SponsorManagerPanel
+            chainId={selectedChain}
+            onSponsorChange={(sponsor, gasLimit) => {
+              setApproveSponsor(sponsor);
+              setApproveGasLimit(gasLimit);
+            }}
+          />
+          <FrameSimulator chainId={selectedChain} initialSponsor={approveSponsor} initialGasLimit={approveGasLimit} />
 
           <section className="status-grid" aria-label="Deployment status">
             <div>

@@ -159,6 +159,10 @@ h2 {
   background: #3266d8;
 }
 
+.approve-action {
+  background: #17684d;
+}
+
 .canvas {
   display: grid;
   gap: 12px;
@@ -240,7 +244,8 @@ h2 {
 }
 
 .create-panel,
-.simulator-panel {
+.simulator-panel,
+.sponsor-panel {
   background: #fffdf8;
   border: 1px solid #ddd3c3;
   border-radius: 8px;
@@ -275,7 +280,8 @@ h2 {
 }
 
 .create-panel label,
-.simulator-panel label {
+.simulator-panel label,
+.sponsor-panel label {
   color: #4f5f55;
   display: grid;
   font-size: 13px;
@@ -285,7 +291,8 @@ h2 {
 
 .create-panel input,
 .simulator-panel input,
-.simulator-panel select {
+.simulator-panel select,
+.sponsor-panel input {
   background: #f6f3ec;
   border: 1px solid #d7cebf;
   border-radius: 8px;
@@ -299,6 +306,24 @@ h2 {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(3, 1fr);
+}
+
+.checkbox-label {
+  align-items: center;
+  display: flex !important;
+  gap: 10px !important;
+  min-height: 42px;
+}
+
+.checkbox-label input {
+  min-height: auto;
+  width: 18px;
+}
+
+.action-row {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr auto;
 }
 
 .nonce-row {
@@ -458,6 +483,7 @@ h2 {
   .status-grid,
   .simulator-grid,
   .nonce-row,
+  .action-row,
   .call-list div {
     grid-template-columns: 1fr;
   }

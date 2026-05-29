@@ -9,6 +9,8 @@ import { ensureWalletChain } from "../lib/walletChain";
 
 type Props = {
   chainId: number;
+  initialSponsor?: string;
+  initialGasLimit?: string;
 };
 
 type FrameKind = "VERIFY" | "EXECUTION" | "APPROVE";
@@ -30,7 +32,7 @@ function defaultNonceKey(kind: FrameKind) {
   return keccak256(encodePacked(["string", "uint8"], ["FRAMEVIBE_DEFAULT_NONCE", frameKindMap[kind]]));
 }
 
-export function FrameSimulator({ chainId }: Props) {
+export function FrameSimulator({ chainId, initialSponsor, initialGasLimit }: Props) {
   const selectedChain = chains.find((chain) => chain.id === chainId) ?? megaEthTestnet;
   const contracts = getChainContracts(selectedChain.id);
   const [kind, setKind] = useState<FrameKind>("VERIFY");
@@ -74,6 +76,14 @@ export function FrameSimulator({ chainId }: Props) {
   useEffect(() => {
     setNonceKey(defaultNonceKey(kind));
   }, [kind]);
+
+  useEffect(() => {
+    if (initialSponsor) setSponsor(initialSponsor);
+  }, [initialSponsor]);
+
+  useEffect(() => {
+    if (initialGasLimit) setGasLimit(initialGasLimit);
+  }, [initialGasLimit]);
 
   async function refreshNonce() {
     if (!contracts?.genesisAccount) {
@@ -181,6 +191,10 @@ export function FrameSimulator({ chainId }: Props) {
 
   async function executeExecutionFrame() {
     await executeCurrentFrame("EXECUTION");
+  }
+
+  async function executeApproveFrame() {
+    await executeCurrentFrame("APPROVE");
   }
 
   function useDefaultLane() {
@@ -351,6 +365,9 @@ export function FrameSimulator({ chainId }: Props) {
       </button>
       <button type="button" className="primary-action execution-action" disabled={kind !== "EXECUTION" || calls.length === 0} onClick={executeExecutionFrame}>
         Execute EXECUTION Frame
+      </button>
+      <button type="button" className="primary-action approve-action" disabled={kind !== "APPROVE" || !sponsor} onClick={executeApproveFrame}>
+        Execute APPROVE Frame
       </button>
       <p className="deploy-message">{executeStatus}</p>
       {executeTx ? <code className="tx-hash">{executeTx}</code> : null}
