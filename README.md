@@ -95,3 +95,8 @@ Before production, add tests for your exact templates and run a contract audit. 
 - Account: `0xA81f843Cc9E7842f502C9831C712b1472532d330`
 - Verifier: `0xfEdA46a5d244C4Fc155059Fbbb1FeA6978EB6809`
 - Sponsor Manager: `0x62F449752eCd219FEcb66ff816037A19CB7098d3`
+
+## Current Base Sepolia deployment
+
+- Chain ID: `84532`
+- Factory: `0x6e5FB12622F1B897ae14e702A88174C6aBd51676`
