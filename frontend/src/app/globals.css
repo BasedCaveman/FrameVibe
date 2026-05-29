@@ -299,6 +299,31 @@ h2 {
   overflow-wrap: anywhere;
 }
 
+.created-contracts {
+  display: grid;
+  gap: 8px;
+}
+
+.created-contracts div {
+  background: rgba(33, 148, 109, 0.09);
+  border-radius: 8px;
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+}
+
+.created-contracts span {
+  color: #17684d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.created-contracts code {
+  color: #17201a;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
 .primary-action:disabled {
   cursor: not-allowed;
   opacity: 0.55;

@@ -86,3 +86,12 @@ This primitive includes:
 - Add tests for signature replay, keyed nonce isolation, sponsorship caps, and batch atomicity.
 
 Before production, add tests for your exact templates and run a contract audit. FrameVibe is a primitive, not a final audited protocol.
+
+## Current MegaETH testnet deployment
+
+- Chain ID: `6343`
+- Factory: `0xE9fc57910031f746ee51209642067F275cFd3637`
+- Genesis project tx: `0xbbb9298bd1024ab5b7ea1942d6120efd14bb693175ca10e26c77f58737357de2`
+- Account: `0xA81f843Cc9E7842f502C9831C712b1472532d330`
+- Verifier: `0xfEdA46a5d244C4Fc155059Fbbb1FeA6978EB6809`
+- Sponsor Manager: `0x62F449752eCd219FEcb66ff816037A19CB7098d3`

@@ -1,7 +1,20 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { createWalletClient, custom, getAddress, keccak256, numberToHex, toBytes, type Address, type Chain, type Hash } from "viem";
+import {
+  createPublicClient,
+  createWalletClient,
+  custom,
+  decodeEventLog,
+  getAddress,
+  http,
+  keccak256,
+  numberToHex,
+  toBytes,
+  type Address,
+  type Chain,
+  type Hash
+} from "viem";
 import { baseSepolia, megaEthTestnet } from "../config/chains";
 import { getFactoryAddress } from "../config/contracts";
 import { frameVibeFactoryAbi } from "../lib/frameVibeFactoryAbi";
@@ -14,6 +27,9 @@ type DeployState = {
   status: "idle" | "wallet" | "submitting" | "success" | "error";
   message: string;
   txHash?: Hash;
+  account?: Address;
+  verifier?: Address;
+  sponsorManager?: Address;
 };
 
 const chains = [megaEthTestnet, baseSepolia];
@@ -77,6 +93,10 @@ export function CreateProjectPanel({ chainId }: Props) {
         chain: selectedChain,
         transport: custom(window.ethereum)
       });
+      const publicClient = createPublicClient({
+        chain: selectedChain,
+        transport: http(selectedChain.rpcUrls.default.http[0])
+      });
 
       const [account] = await walletClient.requestAddresses();
       const ownerAddress = getAddress((owner || account) as Address);
@@ -90,7 +110,35 @@ export function CreateProjectPanel({ chainId }: Props) {
         args: [projectId, projectName, metadataURI, ownerAddress]
       });
 
-      setState({ status: "success", message: "Project transaction submitted.", txHash });
+      setState({ status: "submitting", message: "Transaction submitted. Waiting for receipt...", txHash });
+      const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+      const projectCreated = receipt.logs
+        .map((log) => {
+          try {
+            return decodeEventLog({
+              abi: frameVibeFactoryAbi,
+              data: log.data,
+              topics: log.topics
+            });
+          } catch {
+            return undefined;
+          }
+        })
+        .find((event) => event?.eventName === "ProjectCreated");
+
+      if (projectCreated?.eventName === "ProjectCreated") {
+        setState({
+          status: "success",
+          message: "Project created on-chain.",
+          txHash,
+          account: projectCreated.args.account,
+          verifier: projectCreated.args.verifier,
+          sponsorManager: projectCreated.args.sponsorManager
+        });
+        return;
+      }
+
+      setState({ status: "success", message: "Project transaction confirmed. Event parsing skipped.", txHash });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Transaction failed.";
       setState({ status: "error", message });
@@ -133,6 +181,22 @@ export function CreateProjectPanel({ chainId }: Props) {
 
       <p className={`deploy-message ${state.status}`}>{state.message}</p>
       {state.txHash ? <code className="tx-hash">{state.txHash}</code> : null}
+      {state.account ? (
+        <div className="created-contracts">
+          <div>
+            <span>Account</span>
+            <code>{state.account}</code>
+          </div>
+          <div>
+            <span>Verifier</span>
+            <code>{state.verifier}</code>
+          </div>
+          <div>
+            <span>Sponsor Manager</span>
+            <code>{state.sponsorManager}</code>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
