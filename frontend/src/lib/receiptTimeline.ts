@@ -1,4 +1,4 @@
-export type ReceiptKind = "PROJECT" | "SPONSOR_RULE" | "VERIFY" | "EXECUTION" | "APPROVE";
+export type ReceiptKind = "PROJECT" | "SPONSOR_RULE" | "VERIFY" | "EXECUTION" | "APPROVE" | "PRIVACY_ROOT" | "PRIVATE_VERIFY";
 
 export type ReceiptEntry = {
   id: string;

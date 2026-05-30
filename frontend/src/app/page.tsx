@@ -6,6 +6,7 @@ import { CreateProjectPanel } from "../components/CreateProjectPanel";
 import { FrameCanvas } from "../components/FrameCanvas";
 import { FrameSimulator } from "../components/FrameSimulator";
 import { GuidedSetup } from "../components/GuidedSetup";
+import { PrivateVerifyPanel } from "../components/PrivateVerifyPanel";
 import { ReceiptTimeline } from "../components/ReceiptTimeline";
 import { SponsorManagerPanel } from "../components/SponsorManagerPanel";
 import { TemplateGallery } from "../components/TemplateGallery";
@@ -61,6 +62,7 @@ export default function Home() {
           <div id="frame-simulator">
             <FrameSimulator chainId={selectedChain} initialSponsor={approveSponsor} initialGasLimit={approveGasLimit} />
           </div>
+          <PrivateVerifyPanel chainId={selectedChain} />
           <ReceiptTimeline chainId={selectedChain} />
 
           <section className="status-grid" aria-label="Deployment status">
