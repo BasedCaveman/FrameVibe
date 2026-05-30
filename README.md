@@ -93,6 +93,7 @@ Before production, add tests for your exact templates and run a contract audit. 
 
 - Chain ID: `6343`
 - Factory: `0xE9fc57910031f746ee51209642067F275cFd3637`
+- Privacy Registry: `0xc19791284342Ac2F6030cC6C0C170F559642f135`
 - Genesis project tx: `0xbbb9298bd1024ab5b7ea1942d6120efd14bb693175ca10e26c77f58737357de2`
 - Account: `0xA81f843Cc9E7842f502C9831C712b1472532d330`
 - Verifier: `0xfEdA46a5d244C4Fc155059Fbbb1FeA6978EB6809`
@@ -102,6 +103,7 @@ Before production, add tests for your exact templates and run a contract audit. 
 
 - Chain ID: `84532`
 - Factory: `0x6e5FB12622F1B897ae14e702A88174C6aBd51676`
+- Privacy Registry: `0x7ff64aC54827360A860d8EbD13Bf39e0eb68fE5A`
 - Account: `0x95Bb81ceA8766AE0b1787D7bb5F764F1635f3dA3`
 - Verifier: `0xfDEB69993750E25bbe46d2c0D14F21cE175Cb245`
 - Sponsor Manager: `0xCa4882Ff6821454E540E0c41427425542437B07c`
