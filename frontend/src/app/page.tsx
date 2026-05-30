@@ -5,6 +5,7 @@ import { ChainSelector } from "../components/ChainSelector";
 import { CreateProjectPanel } from "../components/CreateProjectPanel";
 import { FrameCanvas } from "../components/FrameCanvas";
 import { FrameSimulator } from "../components/FrameSimulator";
+import { GuidedSetup } from "../components/GuidedSetup";
 import { ReceiptTimeline } from "../components/ReceiptTimeline";
 import { SponsorManagerPanel } from "../components/SponsorManagerPanel";
 import { TemplateGallery } from "../components/TemplateGallery";
@@ -44,15 +45,22 @@ export default function Home() {
           </div>
 
           <FrameCanvas template={selectedTemplate} />
-          <CreateProjectPanel chainId={selectedChain} />
-          <SponsorManagerPanel
-            chainId={selectedChain}
-            onSponsorChange={(sponsor, gasLimit) => {
-              setApproveSponsor(sponsor);
-              setApproveGasLimit(gasLimit);
-            }}
-          />
-          <FrameSimulator chainId={selectedChain} initialSponsor={approveSponsor} initialGasLimit={approveGasLimit} />
+          <GuidedSetup chainId={selectedChain} />
+          <div id="create-project">
+            <CreateProjectPanel chainId={selectedChain} />
+          </div>
+          <div id="sponsor-manager">
+            <SponsorManagerPanel
+              chainId={selectedChain}
+              onSponsorChange={(sponsor, gasLimit) => {
+                setApproveSponsor(sponsor);
+                setApproveGasLimit(gasLimit);
+              }}
+            />
+          </div>
+          <div id="frame-simulator">
+            <FrameSimulator chainId={selectedChain} initialSponsor={approveSponsor} initialGasLimit={approveGasLimit} />
+          </div>
           <ReceiptTimeline chainId={selectedChain} />
 
           <section className="status-grid" aria-label="Deployment status">
