@@ -6,6 +6,7 @@ import { baseSepolia, megaEthTestnet } from "../config/chains";
 import { getChainContracts } from "../config/contracts";
 import { frameSponsorManagerAbi } from "../lib/frameSponsorManagerAbi";
 import { appendReceipt } from "../lib/receiptTimeline";
+import { minutesFromNowToTimestamp, testEthToWei, timestampToHelper } from "../lib/units";
 import { ensureWalletChain } from "../lib/walletChain";
 
 type Props = {
@@ -19,10 +20,10 @@ export function SponsorManagerPanel({ chainId, onSponsorChange }: Props) {
   const selectedChain = chains.find((chain) => chain.id === chainId) ?? megaEthTestnet;
   const contracts = getChainContracts(selectedChain.id);
   const [sponsor, setSponsor] = useState("");
-  const [maxGasWei, setMaxGasWei] = useState("1000000000000000");
-  const [maxValueWei, setMaxValueWei] = useState("0");
+  const [gasBudgetEth, setGasBudgetEth] = useState("0.001");
+  const [valueBudgetEth, setValueBudgetEth] = useState("0");
   const [maxUses, setMaxUses] = useState("5");
-  const [validUntil, setValidUntil] = useState("0");
+  const [validForMinutes, setValidForMinutes] = useState("0");
   const [active, setActive] = useState(true);
   const [status, setStatus] = useState("Sponsor rule ready.");
   const [txHash, setTxHash] = useState<Hash>();
@@ -54,6 +55,9 @@ export function SponsorManagerPanel({ chainId, onSponsorChange }: Props) {
       });
       const [account] = await walletClient.requestAddresses();
       const sponsorAddress = getAddress(sponsor || account);
+      const maxGasWei = testEthToWei(gasBudgetEth);
+      const maxValueWei = testEthToWei(valueBudgetEth);
+      const validUntil = minutesFromNowToTimestamp(validForMinutes);
       setSponsor(sponsorAddress);
       setLastSponsor(sponsorAddress);
 
@@ -66,10 +70,10 @@ export function SponsorManagerPanel({ chainId, onSponsorChange }: Props) {
         args: [
           sponsorAddress,
           contracts.genesisAccount,
-          BigInt(maxGasWei || "0"),
-          BigInt(maxValueWei || "0"),
+          BigInt(maxGasWei),
+          BigInt(maxValueWei),
           Number(maxUses || "0"),
-          BigInt(validUntil || "0"),
+          BigInt(validUntil),
           active
         ]
       });
@@ -85,7 +89,7 @@ export function SponsorManagerPanel({ chainId, onSponsorChange }: Props) {
         detail: `Sponsor ${sponsorAddress}`
       });
       setStatus("Sponsor rule configured.");
-      onSponsorChange(sponsorAddress, maxGasWei || "0");
+      onSponsorChange(sponsorAddress, maxGasWei);
       await readRule(sponsorAddress);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Could not set sponsor rule.";
@@ -135,9 +139,12 @@ export function SponsorManagerPanel({ chainId, onSponsorChange }: Props) {
         active: rule[0],
         maxGasWei: rule[1].toString(),
         maxValueWei: rule[2].toString(),
+        maxGasTestEth: Number(rule[1]) / 1e18,
+        maxValueTestEth: Number(rule[2]) / 1e18,
         maxUses: rule[3],
         used: rule[4],
-        validUntil: rule[5].toString()
+        validUntil: rule[5].toString(),
+        validUntilLabel: timestampToHelper(rule[5].toString())
       }, null, 2));
       setStatus("Sponsor rule loaded.");
     } catch (error) {
@@ -151,7 +158,7 @@ export function SponsorManagerPanel({ chainId, onSponsorChange }: Props) {
       <div className="panel-head">
         <div>
           <p className="eyebrow">Sponsor Manager</p>
-          <h3>Configure APPROVE Rule</h3>
+          <h3>Choose Who Can Pay Gas</h3>
         </div>
         <span className={contracts?.genesisSponsorManager ? "pill ready" : "pill"}>{contracts?.genesisSponsorManager ? "Manager configured" : "No manager"}</span>
       </div>
@@ -159,27 +166,32 @@ export function SponsorManagerPanel({ chainId, onSponsorChange }: Props) {
       <div className="simulator-grid">
         <label>
           Sponsor
-          <input value={sponsor} onChange={(event) => setSponsor(event.target.value)} placeholder="Defaults to connected wallet" />
+          <small>The wallet allowed to sponsor this flow. Leave empty to use your connected wallet.</small>
+          <input value={sponsor} onChange={(event) => setSponsor(event.target.value)} placeholder="Use my connected wallet" />
         </label>
 
         <label>
-          Max gas wei
-          <input value={maxGasWei} onChange={(event) => setMaxGasWei(event.target.value)} inputMode="numeric" />
+          Gas budget
+          <small>Maximum test ETH this rule can cover for gas-like usage.</small>
+          <input value={gasBudgetEth} onChange={(event) => setGasBudgetEth(event.target.value)} inputMode="decimal" />
         </label>
 
         <label>
-          Max value wei
-          <input value={maxValueWei} onChange={(event) => setMaxValueWei(event.target.value)} inputMode="numeric" />
+          Transfer budget
+          <small>Maximum test ETH value that sponsored calls can move. Keep 0 for simple tests.</small>
+          <input value={valueBudgetEth} onChange={(event) => setValueBudgetEth(event.target.value)} inputMode="decimal" />
         </label>
 
         <label>
-          Max uses
+          Number of uses
+          <small>How many times this sponsor rule can be consumed.</small>
           <input value={maxUses} onChange={(event) => setMaxUses(event.target.value)} inputMode="numeric" />
         </label>
 
         <label>
-          Valid until
-          <input value={validUntil} onChange={(event) => setValidUntil(event.target.value)} inputMode="numeric" />
+          Expires in minutes
+          <small>Use 0 for no expiration.</small>
+          <input value={validForMinutes} onChange={(event) => setValidForMinutes(event.target.value)} inputMode="numeric" />
         </label>
 
         <label className="checkbox-label">

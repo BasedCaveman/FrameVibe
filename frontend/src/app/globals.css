@@ -292,6 +292,15 @@ h2 {
   gap: 7px;
 }
 
+.create-panel label small,
+.simulator-panel label small,
+.sponsor-panel label small {
+  color: #6a746d;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
 .create-panel input,
 .simulator-panel input,
 .simulator-panel select,

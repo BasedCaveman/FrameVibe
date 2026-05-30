@@ -18,36 +18,36 @@ type GuideStep = {
 const steps: GuideStep[] = [
   {
     kind: "PROJECT",
-    title: "Create your project account",
-    description: "Deploy a FrameVibe account, verifier, and sponsor manager for this chain.",
+    title: "Create your project vault",
+    description: "This creates the on-chain workspace that will hold your frame flow for this network.",
     targetId: "create-project",
     action: "Create project"
   },
   {
     kind: "SPONSOR_RULE",
-    title: "Configure sponsorship",
-    description: "Set a simple gas sponsorship rule so APPROVE frames can consume an allowance.",
+    title: "Choose who can pay gas",
+    description: "Pick the wallet that is allowed to cover test transactions and set a simple spending limit.",
     targetId: "sponsor-manager",
     action: "Set sponsor rule"
   },
   {
     kind: "VERIFY",
-    title: "Test VERIFY",
-    description: "Validate the user or wallet lane and prove nonce protection works.",
+    title: "Check access",
+    description: "Run a safe test that proves your connected wallet can start this flow.",
     targetId: "frame-simulator",
     action: "Execute VERIFY"
   },
   {
     kind: "EXECUTION",
-    title: "Test EXECUTION",
-    description: "Run a safe manual call, such as a zero-value call to your own wallet.",
+    title: "Test an action",
+    description: "Send a harmless zero-value test action so you know the flow can execute.",
     targetId: "frame-simulator",
     action: "Execute call"
   },
   {
     kind: "APPROVE",
-    title: "Test APPROVE",
-    description: "Consume the sponsor rule and confirm the used counter increments.",
+    title: "Confirm sponsored gas",
+    description: "Use the sponsorship rule once and confirm the app tracks that usage.",
     targetId: "frame-simulator",
     action: "Execute APPROVE"
   }
@@ -106,7 +106,7 @@ export function GuidedSetup({ chainId }: Props) {
         <div className="next-step done">
           <span>Ready</span>
           <strong>Frame flow validated</strong>
-          <p>Your project has completed VERIFY, EXECUTION, APPROVE, and sponsorship setup on this chain.</p>
+          <p>Your project has completed access check, action test, gas approval, and sponsorship setup on this chain.</p>
         </div>
       )}
 

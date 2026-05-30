@@ -6,6 +6,7 @@ import { baseSepolia, megaEthTestnet } from "../config/chains";
 import { getChainContracts } from "../config/contracts";
 import { frameVibeAccountAbi } from "../lib/frameVibeAccountAbi";
 import { appendReceipt, type ReceiptKind } from "../lib/receiptTimeline";
+import { minutesFromNowToTimestamp, testEthToWei, timestampToHelper, weiToTestEth } from "../lib/units";
 import { ensureWalletChain } from "../lib/walletChain";
 
 type Props = {
@@ -41,13 +42,13 @@ export function FrameSimulator({ chainId, initialSponsor, initialGasLimit }: Pro
   const [sponsor, setSponsor] = useState("");
   const [nonceKey, setNonceKey] = useState<Hex>(defaultNonceKey("VERIFY"));
   const [nonceSeq, setNonceSeq] = useState("0");
-  const [deadline, setDeadline] = useState("0");
+  const [deadlineMinutes, setDeadlineMinutes] = useState("0");
   const [gasLimit, setGasLimit] = useState("0");
   const [recentRoot, setRecentRoot] = useState<Hex>(zeroBytes32);
   const [recentRootSource, setRecentRootSource] = useState<Hex>(zeroBytes32);
   const [metadataText, setMetadataText] = useState("framevibe:simulator:v1");
   const [callTarget, setCallTarget] = useState("");
-  const [callValue, setCallValue] = useState("0");
+  const [callValueEth, setCallValueEth] = useState("0");
   const [callData, setCallData] = useState<Hex>("0x");
   const [calls, setCalls] = useState<ManualCall[]>([]);
   const [nonceStatus, setNonceStatus] = useState("Ready.");
@@ -55,6 +56,7 @@ export function FrameSimulator({ chainId, initialSponsor, initialGasLimit }: Pro
   const [executeTx, setExecuteTx] = useState<Hash>();
 
   const metadataHash = useMemo(() => keccak256(toBytes(metadataText || "framevibe")), [metadataText]);
+  const deadline = useMemo(() => minutesFromNowToTimestamp(deadlineMinutes), [deadlineMinutes]);
 
   const framePreview = useMemo(() => {
     return {
@@ -119,7 +121,7 @@ export function FrameSimulator({ chainId, initialSponsor, initialGasLimit }: Pro
     }
 
     if (expectedKind === "EXECUTION" && calls.length === 0) {
-      setExecuteStatus("Add at least one call before executing.");
+      setExecuteStatus("Add an action first. For a safe test, use your own wallet as the target, 0 test ETH, and 0x calldata.");
       return;
     }
 
@@ -228,19 +230,19 @@ export function FrameSimulator({ chainId, initialSponsor, initialGasLimit }: Pro
   function addCall() {
     try {
       const normalizedTarget = getAddress(callTarget);
-      BigInt(callValue || "0");
+      const valueWei = testEthToWei(callValueEth);
       setCalls((currentCalls) => [
         ...currentCalls,
         {
           target: normalizedTarget,
-          value: callValue || "0",
+          value: valueWei,
           data: callData || "0x"
         }
       ]);
       setCallTarget("");
-      setCallValue("0");
+      setCallValueEth("0");
       setCallData("0x");
-      setExecuteStatus("Call added to EXECUTION frame.");
+      setExecuteStatus("Action added. You can now execute the EXECUTION frame.");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Invalid call.";
       setExecuteStatus(message);
@@ -256,50 +258,56 @@ export function FrameSimulator({ chainId, initialSponsor, initialGasLimit }: Pro
       <div className="panel-head">
         <div>
           <p className="eyebrow">Frame Simulator</p>
-          <h3>Build Frame Preview</h3>
+          <h3>Test Your Flow</h3>
         </div>
         <span className={contracts?.genesisAccount ? "pill ready" : "pill"}>{contracts?.genesisAccount ? "Account configured" : "No account"}</span>
       </div>
 
       <div className="simulator-grid">
         <label>
-          Frame kind
+          Step to test
           <select value={kind} onChange={(event) => setKind(event.target.value as FrameKind)}>
-            <option value="VERIFY">VERIFY</option>
-            <option value="EXECUTION">EXECUTION</option>
-            <option value="APPROVE">APPROVE</option>
+            <option value="VERIFY">Check access</option>
+            <option value="EXECUTION">Run an action</option>
+            <option value="APPROVE">Use sponsored gas</option>
           </select>
         </label>
 
         <label>
-          Actor
-          <input value={actor} onChange={(event) => setActor(event.target.value)} placeholder="Defaults to account owner" />
+          Acting wallet
+          <small>Leave empty to use your connected wallet.</small>
+          <input value={actor} onChange={(event) => setActor(event.target.value)} placeholder="Use connected wallet" />
         </label>
 
         <label>
-          Sponsor
-          <input value={sponsor} onChange={(event) => setSponsor(event.target.value)} placeholder="Required for APPROVE later" />
+          Gas sponsor
+          <small>Required only when testing sponsored gas.</small>
+          <input value={sponsor} onChange={(event) => setSponsor(event.target.value)} placeholder="Sponsor wallet address" />
         </label>
 
         <label>
-          Deadline
-          <input value={deadline} onChange={(event) => setDeadline(event.target.value)} inputMode="numeric" />
+          Expires in minutes
+          <small>Use 0 for no expiration. Current value: {timestampToHelper(deadline)}</small>
+          <input value={deadlineMinutes} onChange={(event) => setDeadlineMinutes(event.target.value)} inputMode="numeric" />
         </label>
 
         <label>
-          Gas limit
+          Sponsor budget
+          <small>Auto-filled after setting a sponsor rule.</small>
           <input value={gasLimit} onChange={(event) => setGasLimit(event.target.value)} inputMode="numeric" />
         </label>
 
         <label>
-          Metadata
+          Label
+          <small>A human-readable tag for this test.</small>
           <input value={metadataText} onChange={(event) => setMetadataText(event.target.value)} />
         </label>
       </div>
 
       <div className="nonce-row">
         <label>
-          Nonce key
+          Test lane
+          <small>Use default lane unless you are testing parallel sessions.</small>
           <input value={nonceKey} onChange={(event) => normalizeBytes32(event.target.value, setNonceKey)} />
         </label>
         <button type="button" onClick={useDefaultLane}>Default lane</button>
@@ -308,17 +316,20 @@ export function FrameSimulator({ chainId, initialSponsor, initialGasLimit }: Pro
 
       <div className="simulator-grid">
         <label>
-          Nonce seq
+          Next run number
+          <small>Read this before executing. It prevents replay mistakes.</small>
           <input value={nonceSeq} onChange={(event) => setNonceSeq(event.target.value)} inputMode="numeric" />
         </label>
 
         <label>
-          Recent root
+          Privacy root
+          <small>Advanced: used by private/ZK flows.</small>
           <input value={recentRoot} onChange={(event) => normalizeBytes32(event.target.value, setRecentRoot)} />
         </label>
 
         <label>
-          Recent root source
+          Privacy root source
+          <small>Advanced: identifies where the root came from.</small>
           <input value={recentRootSource} onChange={(event) => normalizeBytes32(event.target.value, setRecentRootSource)} />
         </label>
       </div>
@@ -328,29 +339,32 @@ export function FrameSimulator({ chainId, initialSponsor, initialGasLimit }: Pro
           <div className="panel-head">
             <div>
               <p className="eyebrow">Execution calls</p>
-              <h3>Manual Call Builder</h3>
+              <h3>Action Builder</h3>
             </div>
             <span className="pill">{calls.length} calls</span>
           </div>
 
           <div className="simulator-grid">
             <label>
-              Target
-              <input value={callTarget} onChange={(event) => setCallTarget(event.target.value)} placeholder="0x target contract or wallet" />
+              Where should this action go?
+              <small>For a safe first test, paste your own wallet address.</small>
+              <input value={callTarget} onChange={(event) => setCallTarget(event.target.value)} placeholder="Wallet or contract address" />
             </label>
 
             <label>
-              Value wei
-              <input value={callValue} onChange={(event) => setCallValue(event.target.value)} inputMode="numeric" />
+              Amount of test ETH
+              <small>Use 0 for a harmless test.</small>
+              <input value={callValueEth} onChange={(event) => setCallValueEth(event.target.value)} inputMode="decimal" />
             </label>
 
             <label>
-              Calldata
+              Contract data
+              <small>Use 0x when you are not calling a contract function.</small>
               <input value={callData} onChange={(event) => normalizeCalldata(event.target.value)} placeholder="0x" />
             </label>
           </div>
 
-          <button type="button" className="secondary-action" onClick={addCall}>Add call</button>
+          <button type="button" className="secondary-action" onClick={addCall}>Add action</button>
 
           {calls.length > 0 ? (
             <div className="call-list">
@@ -358,7 +372,7 @@ export function FrameSimulator({ chainId, initialSponsor, initialGasLimit }: Pro
                 <div key={`${call.target}-${index}`}>
                   <span>Call {index + 1}</span>
                   <code>{call.target}</code>
-                  <small>{call.value} wei / {call.data}</small>
+                  <small>{weiToTestEth(call.value)} test ETH / {call.data}</small>
                   <button type="button" onClick={() => removeCall(index)}>Remove</button>
                 </div>
               ))}
@@ -369,13 +383,13 @@ export function FrameSimulator({ chainId, initialSponsor, initialGasLimit }: Pro
 
       <p className="deploy-message">{nonceStatus}</p>
       <button type="button" className="primary-action" disabled={kind !== "VERIFY"} onClick={executeVerifyFrame}>
-        Execute VERIFY Frame
+        Run access check
       </button>
       <button type="button" className="primary-action execution-action" disabled={kind !== "EXECUTION" || calls.length === 0} onClick={executeExecutionFrame}>
-        Execute EXECUTION Frame
+        Run action
       </button>
       <button type="button" className="primary-action approve-action" disabled={kind !== "APPROVE" || !sponsor} onClick={executeApproveFrame}>
-        Execute APPROVE Frame
+        Use sponsored gas
       </button>
       <p className="deploy-message">{executeStatus}</p>
       {executeTx ? <code className="tx-hash">{executeTx}</code> : null}
